@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/imdario/mergo"
 	"reflect"
+	"strings"
 )
 
 var tagName = ""
@@ -79,6 +80,24 @@ func buildMap(s []string, value interface{}, parent *map[string]interface{}) map
 
 	}
 	return res
+}
+
+// ToMap creates a map based on the custom struct tag: `tag` values
+// these values can be written in dot notation to create complex nested maps
+// for a more comprehensive example, please see the TODO: test cases
+func ToMap(obj interface{}, tag string) (*map[string]interface{}, error) {
+	tagName = tag
+	s, err := getMapOfAllKeyValues(obj)
+	if err != nil {
+		return nil, err
+	}
+
+	var parentMap = make(map[string]interface{})
+	for k, v := range *s {
+		keys := strings.Split(k, ".")
+		buildMap(keys, v, &parentMap)
+	}
+	return &parentMap, nil
 }
 
 // buildNestedMap recursively builds a (nested) map based on dot notation
