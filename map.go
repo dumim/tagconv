@@ -71,15 +71,16 @@ func getMapOfAllKeyValues(s interface{}) (*map[string]interface{}, error) {
 }
 
 // buildMap builds the parent map and calls buildNestedMap to create the child maps based on dot notation
-func buildMap(s []string, value interface{}, parent *map[string]interface{}) map[string]interface{} {
+func buildMap(s []string, value interface{}, parent *map[string]interface{}) error {
 	var obj = make(map[string]interface{})
 	res := buildNestedMap(s, value, &obj)
 
 	if parent != nil {
-		mergo.Merge(parent, res)
-
+		if err := mergo.Merge(parent, res); err != nil {
+			return err
+		}
 	}
-	return res
+	return nil
 }
 
 // ToMap creates a map based on the custom struct tag: `tag` values
@@ -95,7 +96,9 @@ func ToMap(obj interface{}, tag string) (*map[string]interface{}, error) {
 	var parentMap = make(map[string]interface{})
 	for k, v := range *s {
 		keys := strings.Split(k, ".")
-		buildMap(keys, v, &parentMap)
+		if err := buildMap(keys, v, &parentMap); err != nil {
+			return nil, err
+		}
 	}
 	return &parentMap, nil
 }
