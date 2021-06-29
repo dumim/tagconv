@@ -1,6 +1,8 @@
 package tagconv
 
 import (
+	"encoding/json"
+	"github.com/stretchr/testify/require"
 	"testing"
 )
 
@@ -32,10 +34,10 @@ type Example struct {
 
 // TestHelloName calls greetings.Hello with a name, checking
 // for a valid return value.
-func _TestHelloName(t *testing.T) {
+func TestHelloName(t *testing.T) {
 
 	// the initial object
-	_ := Example{
+	initial := Example{
 		Name:  "2",
 		Email: "3",
 		Obj: Obj{
@@ -56,22 +58,22 @@ func _TestHelloName(t *testing.T) {
 	}
 
 	// expected response
-	_ = `{
-			"name": "",
-			"email": "",
+	expectedJSON := `{
+			"name": "2",
+			"email": "3",
 			"object": {
-			  "name": "",
-			  "text": "",
+			  "name": "4",
+			  "text": "5",
 			  "data": {
-				"world": ""
+				"world": "6"
 			  }
 			},
-			"hello": "",
+			"hello": "1",
 			"data": {
-			  "text": "",
-			  "call": 0
+			  "text": "2",
+			  "call": 2
 			},
-			"id": 0,
+			"id": 1,
 			"list": [
 				{
 					"name": "hi",
@@ -84,8 +86,19 @@ func _TestHelloName(t *testing.T) {
 			]
 		  }
 		`
-	// TODO: do the testing
-}
 
-func TestPass(t *testing.T) {
+	// get the map from custom tags
+	actual, err := ToMap(initial, "custom")
+	if err != nil {
+		t.Fail()
+	}
+
+	// convert to json to compare
+	actualJSON, err := json.Marshal(actual)
+	if err != nil {
+		t.Fail()
+	}
+
+	// compare
+	require.JSONEqf(t, expectedJSON, string(actualJSON), "JSON mismatch")
 }
