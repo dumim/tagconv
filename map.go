@@ -26,7 +26,6 @@ func getMapOfAllKeyValues(s interface{}) (*map[string]interface{}, error) {
 	var vars = make(map[string]interface{}) // this will hold the variables as a map (JSON)
 
 	// TODO: catch panics when reflecting unexported fields
-	// TODO: handle arrays
 
 	// get value of object
 	t := reflect.ValueOf(s)
