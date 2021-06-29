@@ -2,6 +2,7 @@ package tagconv
 
 import (
 	"fmt"
+	"github.com/imdario/mergo"
 	"reflect"
 )
 
@@ -66,4 +67,30 @@ func getMapOfAllKeyValues(s interface{}) (*map[string]interface{}, error) {
 		}
 	}
 	return &vars, nil
+}
+
+// buildMap builds the parent map and calls buildNestedMap to create the child maps based on dot notation
+func buildMap(s []string, value interface{}, parent *map[string]interface{}) map[string]interface{} {
+	var obj = make(map[string]interface{})
+	res := buildNestedMap(s, value, &obj)
+
+	if parent != nil {
+		mergo.Merge(parent, res)
+
+	}
+	return res
+}
+
+// buildNestedMap recursively builds a (nested) map based on dot notation
+func buildNestedMap(parts []string, value interface{}, obj *map[string]interface{}) map[string]interface{} {
+	if len(parts) > 1 {
+		// get the first elem in list, and remove that elem from list
+		var first string
+		first, parts = parts[0], parts[1:]
+
+		var m = make(map[string]interface{})
+		m[first] = buildNestedMap(parts, value, obj)
+		return m
+	}
+	return map[string]interface{}{parts[0]: value}
 }
