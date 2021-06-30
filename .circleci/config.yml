@@ -12,7 +12,9 @@ jobs:
             - go-mod-v4-{{ checksum "go.sum" }}
       - run:
           name: Install Dependencies
-          command: go mod download
+          command: |
+            go mod download
+            go get github.com/mattn/goveralls
       - save_cache:
           key: go-mod-v4-{{ checksum "go.sum" }}
           paths:
@@ -22,5 +24,7 @@ jobs:
           command: |
             mkdir -p /tmp/test-reports
             gotestsum --junitfile /tmp/test-reports/unit-tests.xml
+            go test -v -cover -race -coverprofile=/home/ubuntu/coverage.out
+            /home/ubuntu/.go_workspace/bin/goveralls -coverprofile=/home/ubuntu/coverage.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
       - store_test_results:
           path: /tmp/test-reports
