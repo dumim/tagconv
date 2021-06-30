@@ -48,6 +48,7 @@ func getMapOfAllKeyValues(s interface{}) (*map[string]interface{}, error) {
 		// and check for its fields inside for tags
 		if tag == "" {
 			if t.Field(i).Kind() == reflect.Struct {
+				// TODO: check for error
 				qVars, _ := getMapOfAllKeyValues(t.Field(i).Interface()) //recursive call
 				for k, v := range *qVars {
 					vars[k] = v
@@ -58,6 +59,7 @@ func getMapOfAllKeyValues(s interface{}) (*map[string]interface{}, error) {
 		} else {
 			// recursive check nested fields in case this is a struct
 			if t.Field(i).Kind() == reflect.Struct {
+				// TODO: check for error
 				qVars, _ := getMapOfAllKeyValues(t.Field(i).Interface())
 				for k, v := range *qVars {
 					vars[fmt.Sprintf("%s.%s", tag, k)] = v // prepend the parent tag name
