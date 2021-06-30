@@ -10,6 +10,8 @@ import (
 var tagName = ""
 
 // getMapOfAllKeyValues builds a map of the fully specified key and the value from the struct tag
+// the struct tags with the full dot notation will be used as the key, and the value as the value
+// slices will be also be maps
 // eg:
 /*
 	"data.call": 2,
@@ -21,6 +23,10 @@ var tagName = ""
 	"object.data.world": "6",
 	"object.name": "4",
 	"object.text": "5"
+	"list":{
+			{"name":"hi", "value":1},
+			{"name":"world", "value":2}
+		}
 */
 func getMapOfAllKeyValues(s interface{}) (*map[string]interface{}, error) {
 	var vars = make(map[string]interface{}) // this will hold the variables as a map (JSON)
@@ -69,7 +75,29 @@ func getMapOfAllKeyValues(s interface{}) (*map[string]interface{}, error) {
 			}
 		}
 	}
-	return &vars, nil
+
+	// process slices separately
+	// and create the final map
+	var finalMap = make(map[string]interface{})
+	// iterate through the map
+	for k, v := range vars {
+		switch reflect.TypeOf(v).Kind() {
+		// if any of them is a slice
+		case reflect.Slice:
+			var sliceOfMap []map[string]interface{}
+			s := reflect.ValueOf(v)
+			// iterate through the slice
+			for i := 0; i < s.Len(); i++ {
+				m, _ := getMapOfAllKeyValues(s.Index(i).Interface()) // get the map value of the object, recursively
+				sliceOfMap = append(sliceOfMap, *m)                  // append to the slice
+			}
+			finalMap[k] = sliceOfMap
+		default:
+			finalMap[k] = v
+		}
+	}
+
+	return &finalMap, nil
 }
 
 // buildMap builds the parent map and calls buildNestedMap to create the child maps based on dot notation
@@ -87,7 +115,7 @@ func buildMap(s []string, value interface{}, parent *map[string]interface{}) err
 
 // ToMap creates a map based on the custom struct tag: `tag` values
 // these values can be written in dot notation to create complex nested maps
-// for a more comprehensive example, please see the TODO: test cases
+// for a more comprehensive example, please see the
 func ToMap(obj interface{}, tag string) (*map[string]interface{}, error) {
 	tagName = tag
 	s, err := getMapOfAllKeyValues(obj)
