@@ -88,7 +88,8 @@ func TestHelloName(t *testing.T) {
 		`
 
 	// get the map from custom tags
-	actual, err := ToMap(initial, "custom")
+	tagName = "custom"
+	actual, err := ToMap(initial, tagName)
 	if err != nil {
 		t.Fail()
 	}
