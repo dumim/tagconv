@@ -3,9 +3,25 @@
 [![MIT License](https://img.shields.io/apm/l/atomic-design-ui.svg?)](https://github.com/tterb/atomic-design-ui/blob/master/LICENSEs)
 
 # TagConv
-Convert any Go Struct to a Map based on custom struct tags with dot notation
+Convert any Go Struct to a Map based on custom struct tags with dot notation.
 
-TODO: bacgkround
+## Background
+This package tries to simplify certain use-cases where a struct needs to be mapped manually to a different struct, which holds the same data but is organised differently.
+(eg: mapping data from the db to a presentable API output)
+
+This package allows you to use custom struct tags (which could be any string) to define the mapping.
+This mapping follows the dot-notation convention. Example:
+```go
+Hello string `mytag:"hello.world"`
+```
+The above will result in a map with the JSON equivalent of:
+```json
+{
+    "hello": {
+        "world": "hello world"
+    }
+}
+```
 ## Usage/Examples
 
 Import the package
@@ -106,4 +122,11 @@ This will produce a result similar to:
     ]
 }
 ```
-  
+
+## Acknowledgements
+
+- [Helpful Stackoverflow answer](https://stackoverflow.com/a/7794127/10340220)
+- [Mergo](https://github.com/imdario/mergo)
+## Contributing
+
+Contributions are always welcome!
