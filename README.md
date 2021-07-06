@@ -112,8 +112,16 @@ whereas using `bar` (`ToMap(obj, "bar")`) on the same `obj` will result in:
 }
 ```
 ---
+### Tag options
+- If a nested struct has a tag, this will create a parent-child relationship with that tag and the tags of the fields within that struct.
+- Dot notation will create a parent-child relationship for every `.`.
+- Not setting any tag will ignore that field, unless if it's a struct; then it will go inside the struct to check its tags
+- `-` will explicitly ignore that field. As opposed to above, it will not look inside even if the field is of struct type.
 
-### More complex examples
+For an example that includes all the above scenarios see the code below:
+
+
+### More complex example
 
 Given a deeply-nested complex struct with custom tags like below:
 ```go
