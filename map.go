@@ -93,18 +93,22 @@ func getMapOfAllKeyValues(s interface{}) *map[string]interface{} {
 		switch reflect.TypeOf(v).Kind() {
 		// if any of them is a slice
 		case reflect.Slice:
-			var sliceOfMap []map[string]interface{}
-			s := reflect.ValueOf(v)
-			// iterate through the slice
-			for i := 0; i < s.Len(); i++ {
-				if s.Index(i).CanInterface() {
-					m := getMapOfAllKeyValues(s.Index(i).Interface()) // get the map value of the object, recursively
-					if m != nil {
-						sliceOfMap = append(sliceOfMap, *m) // append to the slice
+			if reflect.TypeOf(v).Elem().Kind() ==  reflect.Struct{
+				var sliceOfMap []map[string]interface{}
+				s := reflect.ValueOf(v)
+				// iterate through the slice
+				for i := 0; i < s.Len(); i++ {
+					if s.Index(i).CanInterface() {
+						m := getMapOfAllKeyValues(s.Index(i).Interface()) // get the map value of the object, recursively
+						if m != nil {
+							sliceOfMap = append(sliceOfMap, *m) // append to the slice
+						}
 					}
 				}
+				finalMap[k] = sliceOfMap
+			} else {
+				finalMap[k] = v
 			}
-			finalMap[k] = sliceOfMap
 		default:
 			finalMap[k] = v
 		}
