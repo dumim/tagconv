@@ -160,3 +160,40 @@ func TestMultipleTagsStructToMap(t *testing.T) {
 	require.JSONEqf(t, expectedJSONOne, string(actualJSONOne), "JSON mismatch for foo tags")
 	require.JSONEqf(t, expectedJSONTwo, string(actualJSONTwo), "JSON mismatch for bar tags")
 }
+
+// TestNilAndUnexportedFields calls ToMap function and checks against the expected result
+// The struct used tries to use nil/empty fields and unexported fields which should not cause the test to panic
+func TestNilAndUnexportedFields(t *testing.T) {
+	type MyStruct struct {
+		f1 string `custom:"f1"`
+		F2 struct {
+			F21 string `custom:"f21"`
+		} `custom:"age"`
+		F3 *string `custom:"f3"`
+		F4 int     `custom:"f4"`
+	}
+
+	obj := MyStruct{
+		F4: 666,
+	}
+
+	// expected response
+	expectedJSON := `{
+			"f3": null,
+			"f4": 666
+		}
+	`
+
+	// get the map from custom tags
+	actual, err := ToMap(obj, "custom")
+	if err != nil {
+		t.Fail()
+	}
+	actualJSON, err := json.Marshal(actual)
+	if err != nil {
+		t.Fail()
+	}
+
+	// compare
+	require.JSONEqf(t, expectedJSON, string(actualJSON), "JSON mismatch")
+}
