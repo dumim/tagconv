@@ -28,6 +28,7 @@ type Example struct {
 	ObjThree ObjTwo     `custom:"-"` // explicitly ignored
 	Id       int        `custom:"id"`
 	Call     int        `custom:"data.call"`
+	Array    []string   `custom:"array"`
 	ArrayObj []ObjThree `custom:"list"`
 	//three    int    `custom:"three"` // unexported, TODO: handle panic
 }
@@ -49,8 +50,9 @@ func TestFullStructToMap(t *testing.T) {
 			Hello: "1",
 			Text:  "2",
 		},
-		Id:   01,
-		Call: 02,
+		Id:    01,
+		Call:  02,
+		Array: []string{"1", "2"},
 		ArrayObj: []ObjThree{
 			{"hi", 1},
 			{"world", 2},
@@ -74,6 +76,7 @@ func TestFullStructToMap(t *testing.T) {
 			  "call": 2
 			},
 			"id": 1,
+			"array": ["1", "2"],
 			"list": [
 				{
 					"name": "hi",
