@@ -6,10 +6,11 @@
 Convert any Go Struct to a Map based on custom struct tags with dot notation.
 
 ## Background
-This package tries to simplify certain use-cases where a struct needs to be mapped manually to a different struct, which holds the same data but is organised differently.
-(eg: mapping data from the db to a presentable API output)
+This package tries to simplify certain use-cases where the same struct needs to be organised/represented differently (eg: mapping data from the db to a presentable API JSON output).
+This would normally have to be done by having two different structs and manually mapping the data between each other.
 
-This package allows you to use custom struct tags (which could be any string) to define the mapping.
+
+This package allows you to use any custom struct tag to define the mapping.
 This mapping follows the dot-notation convention. Example:
 ```go
 Hello string `mytag:"hello.world"`
@@ -22,12 +23,97 @@ The above will result in a map with the JSON equivalent of:
     }
 }
 ```
-## Usage/Examples
+Any number of custom tags can be used to represent the same struct in unlimited number of different ways. For examples, see below.
+
+
+## Usage & Examples
 
 Import the package
 ```go
 import "github.com/dumim/tagconv"
 ```
+
+Define your struct with custom struct tags:
+
+```go
+type MyStruct struct {
+    Age   string `foo:"age"`
+    Year  int    `foo:"dob.year"`
+    Month int    `foo:"dob.month"`
+}
+
+obj := MyStruct{
+    Age:   "22",
+    Year:  1998,
+    Month: 1,
+}
+
+tagName = "foo"
+myMap, err := ToMap(obj, tagName)
+if err != nil {
+    panic()
+}
+```
+This will result in a map that looks like:
+```go
+myMap = map[string]interface{}{
+	"age": "22",
+	"dob": map[string]interface{}{
+	    "year": 1998,
+	    "month": 1,
+    }
+}
+```
+Converting to JSON ...
+```go
+myMapJSON, err := json.MarshalIndent(myMap, "", "    ")
+    if err != nil {
+    panic()
+}
+fmt.Print(myMapJSON)
+```
+... will result in something similar to:
+```json
+{
+  "age": "22",
+  "dob": {
+    "year": 1998,
+    "month": 1
+  }
+}
+```
+
+---
+### Multiple struct tags
+
+You can use multiple struct tags for different representation of the same struct:
+For example, similar to the previous example:
+```go
+type MyStructMultiple struct {
+    Age   string `foo:"age" bar:"details.my_age"`
+}
+
+obj := MyStruct{
+    Age:   "22",
+}
+```
+Using `tagconv` for `obj` over the `foo` tag (`ToMap(obj, "foo")`) will result in:
+```json
+{
+  "age": "22"
+}
+```
+whereas using `bar` (`ToMap(obj, "bar")`) on the same `obj` will result in:
+```json
+{
+  "details": {
+    "my_age": "22"
+  }
+}
+```
+---
+
+### More complex examples
 
 Given a deeply-nested complex struct with custom tags like below:
 ```go
@@ -88,9 +174,7 @@ myMapJSON, err := json.MarshalIndent(myMap, "", "    ")
 if err != nil {
     panic()
 }
-
 fmt.Print(myMapJSON)
-
 ```
 This will produce a result similar to:
 ```json
@@ -122,6 +206,13 @@ This will produce a result similar to:
     ]
 }
 ```
+---
+
+## Testing
+Run the go tests using `go test ./.. -v`
+
+
+---
 
 ## Acknowledgements
 
