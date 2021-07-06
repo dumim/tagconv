@@ -11,17 +11,13 @@ jobs:
             - go-mod-v4-{{ checksum "go.sum" }}
       - run:
           name: Install Dependencies
-          command: go get ./...
+          command: go get ./... && go get github.com/mattn/goveralls
       - save_cache:
           key: go-mod-v4-{{ checksum "go.sum" }}
           paths:
             - "/go/pkg/mod"
-      - test:
+      - run:
           name: Run tests
-          pre:
-            - go get github.com/mattn/goveralls
-          override:
-            - go test -v -cover -race -coverprofile=/home/ubuntu/coverage.out
-          post:
-            - /home/ubuntu/.go_workspace/bin/goveralls -coverprofile=/home/ubuntu/coverage.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
+          command: go test -v -cover -race -coverprofile=/home/ubuntu/coverage.out
+#            - /home/ubuntu/.go_workspace/bin/goveralls -coverprofile=/home/ubuntu/coverage.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
 
