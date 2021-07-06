@@ -32,9 +32,9 @@ type Example struct {
 	//three    int    `custom:"three"` // unexported, TODO: handle panic
 }
 
-// TestHelloName calls greetings.Hello with a name, checking
-// for a valid return value.
-func TestHelloName(t *testing.T) {
+// TestStructToMap calls ToMap function and checks against the expcted result
+// The struct used tries to cover all the scenarios
+func TestStructToMap(t *testing.T) {
 
 	// the initial object
 	initial := Example{
