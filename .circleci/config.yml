@@ -1,4 +1,27 @@
 version: 2.1
-test:
-  override:
-    - go test
+jobs:
+  build:
+    working_directory: ~/repo
+    docker:
+      - image: circleci/golang:1.15.8
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - go-mod-v4-{{ checksum "go.sum" }}
+      - run:
+          name: Install Dependencies
+          command: go get ./...
+      - save_cache:
+          key: go-mod-v4-{{ checksum "go.sum" }}
+          paths:
+            - "/go/pkg/mod"
+      - run:
+          name: Get coverage libs
+          command: go get github.com/mattn/goveralls
+      - run:
+          name: Run tests
+          command: go test -v -cover -race -coverprofile=/home/ubuntu/coverage.out
+      - run:
+          name: Push coverage results
+          command: /home/ubuntu/.go_workspace/bin/goveralls -coverprofile=/home/ubuntu/coverage.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
