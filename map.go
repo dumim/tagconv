@@ -55,8 +55,10 @@ func getMapOfAllKeyValues(s interface{}) *map[string]interface{} {
 				// only check if the value can be obtained without panicking (eg: for unexported fields)
 				if t.Field(i).CanInterface() {
 					qVars := getMapOfAllKeyValues(t.Field(i).Interface()) //recursive call
-					for k, v := range *qVars {
-						vars[k] = v
+					if qVars != nil {
+						for k, v := range *qVars {
+							vars[k] = v
+						}
 					}
 				}
 			} else {
@@ -68,8 +70,10 @@ func getMapOfAllKeyValues(s interface{}) *map[string]interface{} {
 				// only check if the value can be obtained without panicking (eg: for unexported fields)
 				if t.Field(i).CanInterface() {
 					qVars := getMapOfAllKeyValues(t.Field(i).Interface()) //recursive call
-					for k, v := range *qVars {
-						vars[fmt.Sprintf("%s.%s", tag, k)] = v // prepend the parent tag name
+					if qVars != nil {
+						for k, v := range *qVars {
+							vars[fmt.Sprintf("%s.%s", tag, k)] = v // prepend the parent tag name
+						}
 					}
 				}
 			} else {
