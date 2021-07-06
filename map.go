@@ -99,7 +99,9 @@ func getMapOfAllKeyValues(s interface{}) *map[string]interface{} {
 			for i := 0; i < s.Len(); i++ {
 				if t.Field(i).CanInterface() {
 					m := getMapOfAllKeyValues(s.Index(i).Interface()) // get the map value of the object, recursively
-					sliceOfMap = append(sliceOfMap, *m)               // append to the slice
+					if m != nil {
+						sliceOfMap = append(sliceOfMap, *m) // append to the slice
+					}
 				}
 			}
 			finalMap[k] = sliceOfMap
