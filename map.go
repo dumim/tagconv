@@ -31,8 +31,6 @@ var tagName = ""
 func getMapOfAllKeyValues(s interface{}) (*map[string]interface{}, error) {
 	var vars = make(map[string]interface{}) // this will hold the variables as a map (JSON)
 
-	// TODO: catch panics when reflecting unexported fields
-
 	// get value of object
 	t := reflect.ValueOf(s)
 	if t.IsZero() {
@@ -55,9 +53,11 @@ func getMapOfAllKeyValues(s interface{}) (*map[string]interface{}, error) {
 		if tag == "" {
 			if t.Field(i).Kind() == reflect.Struct {
 				// TODO: check for error
-				qVars, _ := getMapOfAllKeyValues(t.Field(i).Interface()) //recursive call
-				for k, v := range *qVars {
-					vars[k] = v
+				if t.Field(i).CanInterface() {
+					qVars, _ := getMapOfAllKeyValues(t.Field(i).Interface()) //recursive call
+					for k, v := range *qVars {
+						vars[k] = v
+					}
 				}
 			} else {
 				continue
@@ -66,12 +66,16 @@ func getMapOfAllKeyValues(s interface{}) (*map[string]interface{}, error) {
 			// recursive check nested fields in case this is a struct
 			if t.Field(i).Kind() == reflect.Struct {
 				// TODO: check for error
-				qVars, _ := getMapOfAllKeyValues(t.Field(i).Interface())
-				for k, v := range *qVars {
-					vars[fmt.Sprintf("%s.%s", tag, k)] = v // prepend the parent tag name
+				if t.Field(i).CanInterface() {
+					qVars, _ := getMapOfAllKeyValues(t.Field(i).Interface())
+					for k, v := range *qVars {
+						vars[fmt.Sprintf("%s.%s", tag, k)] = v // prepend the parent tag name
+					}
 				}
 			} else {
-				vars[tag] = t.Field(i).Interface()
+				if t.Field(i).CanInterface() {
+					vars[tag] = t.Field(i).Interface()
+				}
 			}
 		}
 	}
@@ -88,8 +92,10 @@ func getMapOfAllKeyValues(s interface{}) (*map[string]interface{}, error) {
 			s := reflect.ValueOf(v)
 			// iterate through the slice
 			for i := 0; i < s.Len(); i++ {
-				m, _ := getMapOfAllKeyValues(s.Index(i).Interface()) // get the map value of the object, recursively
-				sliceOfMap = append(sliceOfMap, *m)                  // append to the slice
+				if t.Field(i).CanInterface() {
+					m, _ := getMapOfAllKeyValues(s.Index(i).Interface()) // get the map value of the object, recursively
+					sliceOfMap = append(sliceOfMap, *m)                  // append to the slice
+				}
 			}
 			finalMap[k] = sliceOfMap
 		default:
