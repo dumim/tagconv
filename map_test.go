@@ -32,9 +32,9 @@ type Example struct {
 	//three    int    `custom:"three"` // unexported, TODO: handle panic
 }
 
-// TestStructToMap calls ToMap function and checks against the expcted result
+// TestFullStructToMap calls ToMap function and checks against the expected result
 // The struct used tries to cover all the scenarios
-func TestStructToMap(t *testing.T) {
+func TestFullStructToMap(t *testing.T) {
 
 	// the initial object
 	initial := Example{
@@ -102,4 +102,61 @@ func TestStructToMap(t *testing.T) {
 
 	// compare
 	require.JSONEqf(t, expectedJSON, string(actualJSON), "JSON mismatch")
+}
+
+// TestMultipleTagsStructToMap calls ToMap function and checks against the expected result
+// The struct used tries to use multiple struct tags for different responses
+func TestMultipleTagsStructToMap(t *testing.T) {
+	type MyStruct struct {
+		Age   string `foo:"age" bar:"details.myAge"`
+		Year  int    `foo:"dob.year" bar:"details.birthYear"`
+		Month int    `foo:"dob.month" bar:"-"`
+	}
+
+	obj := MyStruct{
+		Age:   "22",
+		Year:  1998,
+		Month: 1,
+	}
+
+	// expected response
+	expectedJSONOne := `{
+		  "age": "22",
+		  "dob": {
+			"year": 1998,
+			"month": 1
+		  }
+		}
+	`
+	expectedJSONTwo := `{
+		  "details": {
+			"myAge": "22",
+			"birthYear": 1998
+		  }
+		}
+	`
+
+	// get the map from custom tags for tag "foo"
+	actualOne, err := ToMap(obj, "foo")
+	if err != nil {
+		t.Fail()
+	}
+	actualJSONOne, err := json.Marshal(actualOne)
+	if err != nil {
+		t.Fail()
+	}
+
+	// get the map from custom tags for tag "bar"
+	actualTwo, err := ToMap(obj, "bar")
+	if err != nil {
+		t.Fail()
+	}
+	actualJSONTwo, err := json.Marshal(actualTwo)
+	if err != nil {
+		t.Fail()
+	}
+
+	// compare
+	require.JSONEqf(t, expectedJSONOne, string(actualJSONOne), "JSON mismatch for foo tags")
+	require.JSONEqf(t, expectedJSONTwo, string(actualJSONTwo), "JSON mismatch for bar tags")
 }
