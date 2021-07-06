@@ -23,5 +23,14 @@ jobs:
           name: Run tests
           command: go test -v -cover -race -coverprofile=coverage.out
       - run:
+          name: Testing path
+          command: echo $GOBIN
+      - run:
+          name: Testing path2
+          command: echo $GOPATH
+      - run:
+          name: Testing path3
+          command: echo $GOROOT
+      - run:
           name: Push coverage results
           command: $HOME/gopath/bin/goveralls -coverprofile=coverage.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
