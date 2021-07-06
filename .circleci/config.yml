@@ -21,7 +21,7 @@ jobs:
           command: go get github.com/mattn/goveralls
       - run:
           name: Run tests
-          command: go test -v -cover -race -coverprofile=~/coverage.out
+          command: go test -v -cover -race -coverprofile=coverage.out
       - run:
           name: Push coverage results
           command: /home/ubuntu/.go_workspace/bin/goveralls -coverprofile=/home/ubuntu/coverage.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
