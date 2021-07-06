@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-var tagName = ""
+var tagName = "" // initialise the struct tag value
 
 // getMapOfAllKeyValues builds a map of the fully specified key and the value from the struct tag
 // the struct tags with the full dot notation will be used as the key, and the value as the value
@@ -28,13 +28,13 @@ var tagName = ""
 			{"name":"world", "value":2}
 		}
 */
-func getMapOfAllKeyValues(s interface{}) (*map[string]interface{}, error) {
+func getMapOfAllKeyValues(s interface{}) *map[string]interface{} {
 	var vars = make(map[string]interface{}) // this will hold the variables as a map (JSON)
 
 	// get value of object
 	t := reflect.ValueOf(s)
 	if t.IsZero() {
-		return nil, fmt.Errorf("empty struct sent")
+		return nil
 	}
 	// Iterate over all available fields and read the tag value
 	for i := 0; i < t.NumField(); i++ {
@@ -52,9 +52,9 @@ func getMapOfAllKeyValues(s interface{}) (*map[string]interface{}, error) {
 		// and check for its fields inside for tags
 		if tag == "" {
 			if t.Field(i).Kind() == reflect.Struct {
-				// TODO: check for error
+				// only check if the value can be obtained without panicking (eg: for unexported fields)
 				if t.Field(i).CanInterface() {
-					qVars, _ := getMapOfAllKeyValues(t.Field(i).Interface()) //recursive call
+					qVars := getMapOfAllKeyValues(t.Field(i).Interface()) //recursive call
 					for k, v := range *qVars {
 						vars[k] = v
 					}
@@ -65,14 +65,15 @@ func getMapOfAllKeyValues(s interface{}) (*map[string]interface{}, error) {
 		} else {
 			// recursive check nested fields in case this is a struct
 			if t.Field(i).Kind() == reflect.Struct {
-				// TODO: check for error
+				// only check if the value can be obtained without panicking (eg: for unexported fields)
 				if t.Field(i).CanInterface() {
-					qVars, _ := getMapOfAllKeyValues(t.Field(i).Interface())
+					qVars := getMapOfAllKeyValues(t.Field(i).Interface()) //recursive call
 					for k, v := range *qVars {
 						vars[fmt.Sprintf("%s.%s", tag, k)] = v // prepend the parent tag name
 					}
 				}
 			} else {
+				// only check if the value can be obtained without panicking (eg: for unexported fields)
 				if t.Field(i).CanInterface() {
 					vars[tag] = t.Field(i).Interface()
 				}
@@ -93,8 +94,8 @@ func getMapOfAllKeyValues(s interface{}) (*map[string]interface{}, error) {
 			// iterate through the slice
 			for i := 0; i < s.Len(); i++ {
 				if t.Field(i).CanInterface() {
-					m, _ := getMapOfAllKeyValues(s.Index(i).Interface()) // get the map value of the object, recursively
-					sliceOfMap = append(sliceOfMap, *m)                  // append to the slice
+					m := getMapOfAllKeyValues(s.Index(i).Interface()) // get the map value of the object, recursively
+					sliceOfMap = append(sliceOfMap, *m)               // append to the slice
 				}
 			}
 			finalMap[k] = sliceOfMap
@@ -103,7 +104,7 @@ func getMapOfAllKeyValues(s interface{}) (*map[string]interface{}, error) {
 		}
 	}
 
-	return &finalMap, nil
+	return &finalMap
 }
 
 // buildMap builds the parent map and calls buildNestedMap to create the child maps based on dot notation
@@ -124,10 +125,7 @@ func buildMap(s []string, value interface{}, parent *map[string]interface{}) err
 // for a more comprehensive example, please see the
 func ToMap(obj interface{}, tag string) (*map[string]interface{}, error) {
 	tagName = tag
-	s, err := getMapOfAllKeyValues(obj)
-	if err != nil {
-		return nil, err
-	}
+	s := getMapOfAllKeyValues(obj)
 
 	var parentMap = make(map[string]interface{})
 	for k, v := range *s {
