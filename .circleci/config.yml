@@ -24,4 +24,4 @@ jobs:
           command: go test -v -cover -race -coverprofile=coverage.out
       - run:
           name: Push coverage results
-          command: /home/ubuntu/.go_workspace/bin/goveralls -coverprofile=/home/ubuntu/coverage.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
+          command: $HOME/gopath/bin/goveralls -coverprofile=coverage.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
