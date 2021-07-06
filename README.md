@@ -1,5 +1,6 @@
 [![Documentation](https://godoc.org/github.com/dumim/tagconv?status.svg)](http://godoc.org/github.com/dumim/tagconv)
 [![Go Report Card](https://goreportcard.com/badge/github.com/dumim/tagconv)](https://goreportcard.com/report/github.com/dumim/tagconv)
+[![Coverage Status](https://coveralls.io/repos/github/dumim/tagconv/badge.svg?branch=main)](https://coveralls.io/github/dumim/tagconv?branch=main)
 [![MIT License](https://img.shields.io/apm/l/atomic-design-ui.svg?)](https://github.com/tterb/atomic-design-ui/blob/master/LICENSEs)
 
 # TagConv
