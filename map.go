@@ -90,27 +90,29 @@ func getMapOfAllKeyValues(s interface{}) *map[string]interface{} {
 	var finalMap = make(map[string]interface{})
 	// iterate through the map
 	for k, v := range vars {
-		switch reflect.TypeOf(v).Kind() {
-		// if any of them is a slice
-		case reflect.Slice:
-			if reflect.TypeOf(v).Elem().Kind() ==  reflect.Struct{
-				var sliceOfMap []map[string]interface{}
-				s := reflect.ValueOf(v)
-				// iterate through the slice
-				for i := 0; i < s.Len(); i++ {
-					if s.Index(i).CanInterface() {
-						m := getMapOfAllKeyValues(s.Index(i).Interface()) // get the map value of the object, recursively
-						if m != nil {
-							sliceOfMap = append(sliceOfMap, *m) // append to the slice
+		if reflect.TypeOf(v) != nil {
+			switch reflect.TypeOf(v).Kind() {
+			// if any of them is a slice
+			case reflect.Slice:
+				if reflect.TypeOf(v).Elem().Kind() == reflect.Struct {
+					var sliceOfMap []map[string]interface{}
+					s := reflect.ValueOf(v)
+					// iterate through the slice
+					for i := 0; i < s.Len(); i++ {
+						if s.Index(i).CanInterface() {
+							m := getMapOfAllKeyValues(s.Index(i).Interface()) // get the map value of the object, recursively
+							if m != nil {
+								sliceOfMap = append(sliceOfMap, *m) // append to the slice
+							}
 						}
 					}
+					finalMap[k] = sliceOfMap
+				} else {
+					finalMap[k] = v
 				}
-				finalMap[k] = sliceOfMap
-			} else {
+			default:
 				finalMap[k] = v
 			}
-		default:
-			finalMap[k] = v
 		}
 	}
 
@@ -134,6 +136,10 @@ func buildMap(s []string, value interface{}, parent *map[string]interface{}) err
 // these values can be written in dot notation to create complex nested maps
 // for a more comprehensive example, please see the
 func ToMap(obj interface{}, tag string) (*map[string]interface{}, error) {
+	if obj == nil {
+		return nil, fmt.Errorf("nil object passed")
+	}
+
 	tagName = tag
 	s := getMapOfAllKeyValues(obj)
 

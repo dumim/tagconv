@@ -172,18 +172,22 @@ func TestNilAndUnexportedFields(t *testing.T) {
 		F2 struct {
 			F21 string `custom:"f21"`
 		} `custom:"age"`
-		F3 *string `custom:"f3"`
-		F4 int     `custom:"f4"`
+		F3 *string     `custom:"f3"`
+		F4 int         `custom:"f4"`
+		F5 interface{} `custom:"f5"`
+		F6 interface{} `custom:"f6"`
 	}
 
 	obj := MyStruct{
 		F4: 666,
+		F6: "666",
 	}
 
 	// expected response
 	expectedJSON := `{
 			"f3": null,
-			"f4": 666
+			"f4": 666,
+			"f6": "666"
 		}
 	`
 
