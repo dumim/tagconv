@@ -218,9 +218,12 @@ func TestOmitEmptyOptionFields(t *testing.T) {
 		F5 bool        `custom:"f5,omitempty"`
 		F6 interface{} `custom:"f6,omitempty"`
 		F7 struct {
-			F21 string `custom:"f71"`
+			F71 string `custom:"f71"`
 		} `custom:"f7,omitempty"`
-		F8 *bool `custom:"f8,omitempty"` // only this should
+		F8 *bool `custom:"f8,omitempty"`
+		F9 struct {
+			F91 string `custom:"f91"`
+		} `custom:"f9,omitempty"`
 	}
 
 	f := false
@@ -228,10 +231,14 @@ func TestOmitEmptyOptionFields(t *testing.T) {
 		F5: f,
 		F8: &f,
 	}
+	obj.F9.F91 = "123"
 
 	// expected response
 	expectedJSON := `{
-			"f8": false
+			"f8": false,
+			"f9": {
+				"f91": "123"
+			}
 		}
 	`
 
