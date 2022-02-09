@@ -118,6 +118,8 @@ whereas using `bar` (`ToMap(obj, "bar")`) on the same `obj` will result in:
 - Dot notation will create a parent-child relationship for every `.`.
 - Not setting any tag will ignore that field, unless if it's a struct; then it will go inside the struct to check its tags
 - `-` will explicitly ignore that field. As opposed to above, it will not look inside even if the field is of struct type.
+- `,omitempty` can be used similar to the `json` package to skip fields that have empty values
+  - this also handles default empty values (`""` for `string`, `0` for `int`, etc.). Note that for `bool` values, `false` wil be omitted if this option is used since this is the default empty value. To work around this, use `*bool` (see example) 
 
 For an example that includes all the above scenarios see the code below:
 
@@ -139,6 +141,23 @@ type ObjThree struct {
 	Name  string `custom:"name"`
 	Value int    `custom:"value"`
 }
+type ObjFour struct {
+    F1 string `custom:"f1,omitempty"`
+    F2 struct {
+        F21 string `custom:"f21,omitempty"`
+    } `custom:"f2"`
+    F3 *string     `custom:"f3, omitempty"` // omitempty with space
+    F4 int         `custom:"f4,omitempty"`
+    F5 bool        `custom:"f5,omitempty"`
+    F6 interface{} `custom:"f6,omitempty"`
+    F7 struct {
+        F71 string `custom:"f71"`
+    } `custom:"f7,omitempty"`
+    F8 *bool `custom:"f8,omitempty"` // use pointer to keep false on omitempty
+    F9 struct {
+        F91 string `custom:"f91"`
+    } `custom:"f9,omitempty"`
+}
 type Example struct {
 	Name     string     `custom:"name"`
 	Email    string     `custom:"email"`
@@ -148,10 +167,12 @@ type Example struct {
 	Id       int        `custom:"id"`
 	Call     int        `custom:"data.call"` // top-level dot notation
 	ArrayObj []ObjThree `custom:"list"`
+	Omit     ObjFour    `custom:omit`
 }
 ```
 The `ToMap` function can be used to convert this into a JSON/Map based on the values defined in the given custom tag like so.
 ```go
+f := false
 obj := Example{
     Name:  "2",
     Email: "3",
@@ -170,7 +191,12 @@ obj := Example{
         {"hi", 1},
         {"world", 2},
     },
+	Omit: ObjFour{
+      F5: f,
+      F8: &f,
+    }
 }
+obj.Omit.F9.F91 = "123"
 
 // get the map from custom tags
 tagName = "custom"
@@ -212,7 +238,13 @@ This will produce a result similar to:
             "name": "world",
             "value": 2
         }
-    ]
+    ],
+    "omit": {
+        "f8": false,
+        "f9": {
+            "f91": "123"
+        }
+    }
 }
 ```
 ---
