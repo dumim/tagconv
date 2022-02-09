@@ -9,6 +9,8 @@ import (
 
 var tagName = "" // initialise the struct tag value
 
+const omitEmptyTagOption = "omitempty" // omit values with this tag option if empty
+
 // getMapOfAllKeyValues builds a map of the fully specified key and the value from the struct tag
 // the struct tags with the full dot notation will be used as the key, and the value as the value
 // slices will be also be maps
@@ -65,10 +67,17 @@ func getMapOfAllKeyValues(s interface{}) *map[string]interface{} {
 				continue
 			}
 		} else {
+			// omitempty tag passed?
+			tag, shouldOmitEmpty := shouldOmitEmpty(tag) // overwrite tag
 			// recursive check nested fields in case this is a struct
 			if t.Field(i).Kind() == reflect.Struct {
 				// only check if the value can be obtained without panicking (eg: for unexported fields)
 				if t.Field(i).CanInterface() {
+					if shouldOmitEmpty {
+						if t.Field(i).IsZero() {
+							continue
+						}
+					}
 					qVars := getMapOfAllKeyValues(t.Field(i).Interface()) //recursive call
 					if qVars != nil {
 						for k, v := range *qVars {
@@ -79,6 +88,11 @@ func getMapOfAllKeyValues(s interface{}) *map[string]interface{} {
 			} else {
 				// only check if the value can be obtained without panicking (eg: for unexported fields)
 				if t.Field(i).CanInterface() {
+					if shouldOmitEmpty {
+						if t.Field(i).IsZero() {
+							continue
+						}
+					}
 					vars[tag] = t.Field(i).Interface()
 				}
 			}
@@ -119,6 +133,20 @@ func getMapOfAllKeyValues(s interface{}) *map[string]interface{} {
 	return &finalMap
 }
 
+// shouldOmitEmpty checks if the omitEmptyTagOption option is passed in the tag
+// eg: `foo:"bar,omitempty"`
+func shouldOmitEmpty(originalTag string) (string, bool) {
+	if ss := strings.Split(originalTag, ","); len(ss) > 1 {
+		// TODO: add more validation & error checking
+		if strings.TrimSpace(ss[1]) == omitEmptyTagOption {
+			return ss[0], true
+		}
+		return ss[0], false
+	} else {
+		return originalTag, false
+	}
+}
+
 // buildMap builds the parent map and calls buildNestedMap to create the child maps based on dot notation
 func buildMap(s []string, value interface{}, parent *map[string]interface{}) error {
 	var obj = make(map[string]interface{})
@@ -142,6 +170,10 @@ func ToMap(obj interface{}, tag string) (*map[string]interface{}, error) {
 
 	tagName = tag
 	s := getMapOfAllKeyValues(obj)
+
+	if s == nil {
+		return nil, fmt.Errorf("no valid map could be formed")
+	}
 
 	var parentMap = make(map[string]interface{})
 	for k, v := range *s {
