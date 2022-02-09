@@ -171,7 +171,7 @@ func TestNilAndUnexportedFields(t *testing.T) {
 		f1 string `custom:"f1"`
 		F2 struct {
 			F21 string `custom:"f21"`
-		} `custom:"age"`
+		} `custom:"f2"`
 		F3 *string     `custom:"f3"`
 		F4 int         `custom:"f4"`
 		F5 interface{} `custom:"f5"`
@@ -188,6 +188,50 @@ func TestNilAndUnexportedFields(t *testing.T) {
 			"f3": null,
 			"f4": 666,
 			"f6": "666"
+		}
+	`
+
+	// get the map from custom tags
+	actual, err := ToMap(obj, "custom")
+	if err != nil {
+		t.Fail()
+	}
+	actualJSON, err := json.Marshal(actual)
+	if err != nil {
+		t.Fail()
+	}
+
+	// compare
+	require.JSONEqf(t, expectedJSON, string(actualJSON), "JSON mismatch")
+}
+
+// TestOmitEmptyOptionFields calls ToMap function and checks for the expected behaviour
+// of passing the omitempty tag option
+func TestOmitEmptyOptionFields(t *testing.T) {
+	type MyStruct struct {
+		F1 string `custom:"f1,omitempty"`
+		F2 struct {
+			F21 string `custom:"f21,omitempty"`
+		} `custom:"f2"`
+		F3 *string     `custom:"f3, omitempty"` // omitempty with space
+		F4 int         `custom:"f4,omitempty"`
+		F5 bool        `custom:"f5,omitempty"`
+		F6 interface{} `custom:"f6,omitempty"`
+		F7 struct {
+			F21 string `custom:"f71"`
+		} `custom:"f7,omitempty"`
+		F8 *bool `custom:"f8,omitempty"` // only this should
+	}
+
+	f := false
+	obj := MyStruct{
+		F5: f,
+		F8: &f,
+	}
+
+	// expected response
+	expectedJSON := `{
+			"f8": false
 		}
 	`
 
