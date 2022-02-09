@@ -121,6 +121,20 @@ func getMapOfAllKeyValues(s interface{}) *map[string]interface{} {
 	return &finalMap
 }
 
+// shouldOmitEmpty checks if the omitEmptyTagOption option is passed in the tag
+// eg: `foo:"bar,omitempty"`
+func shouldOmitEmpty(originalTag string) (string, bool) {
+	if ss := strings.Split(originalTag, ","); len(ss) > 1 {
+		// TODO: add more validation & error checking
+		if strings.TrimSpace(ss[1]) == omitEmptyTagOption {
+			return ss[0], true
+		}
+		return ss[0], false
+	} else {
+		return originalTag, false
+	}
+}
+
 // buildMap builds the parent map and calls buildNestedMap to create the child maps based on dot notation
 func buildMap(s []string, value interface{}, parent *map[string]interface{}) error {
 	var obj = make(map[string]interface{})
