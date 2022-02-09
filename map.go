@@ -67,10 +67,17 @@ func getMapOfAllKeyValues(s interface{}) *map[string]interface{} {
 				continue
 			}
 		} else {
+			// omitempty tag passed?
+			tag, shouldOmitEmpty := shouldOmitEmpty(tag) // overwrite tag
 			// recursive check nested fields in case this is a struct
 			if t.Field(i).Kind() == reflect.Struct {
 				// only check if the value can be obtained without panicking (eg: for unexported fields)
 				if t.Field(i).CanInterface() {
+					if shouldOmitEmpty {
+						if t.Field(i).IsZero() {
+							continue
+						}
+					}
 					qVars := getMapOfAllKeyValues(t.Field(i).Interface()) //recursive call
 					if qVars != nil {
 						for k, v := range *qVars {
@@ -81,6 +88,11 @@ func getMapOfAllKeyValues(s interface{}) *map[string]interface{} {
 			} else {
 				// only check if the value can be obtained without panicking (eg: for unexported fields)
 				if t.Field(i).CanInterface() {
+					if shouldOmitEmpty {
+						if t.Field(i).IsZero() {
+							continue
+						}
+					}
 					vars[tag] = t.Field(i).Interface()
 				}
 			}
@@ -158,6 +170,10 @@ func ToMap(obj interface{}, tag string) (*map[string]interface{}, error) {
 
 	tagName = tag
 	s := getMapOfAllKeyValues(obj)
+
+	if s == nil {
+		return nil, fmt.Errorf("no valid map could be formed")
+	}
 
 	var parentMap = make(map[string]interface{})
 	for k, v := range *s {
