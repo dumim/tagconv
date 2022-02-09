@@ -9,6 +9,8 @@ import (
 
 var tagName = "" // initialise the struct tag value
 
+const omitEmptyTagOption = "omitempty" // omit values with this tag option if empty
+
 // getMapOfAllKeyValues builds a map of the fully specified key and the value from the struct tag
 // the struct tags with the full dot notation will be used as the key, and the value as the value
 // slices will be also be maps
