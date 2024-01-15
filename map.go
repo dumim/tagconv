@@ -1,8 +1,8 @@
 package tagconv
 
 import (
+	"dario.cat/mergo"
 	"fmt"
-	"github.com/imdario/mergo"
 	"reflect"
 	"strings"
 )
